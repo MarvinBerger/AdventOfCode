@@ -23,9 +23,13 @@ func main() {
 	}
 
 	for i := 0; i < len(stacks); i++ {
-		ReverseSlice(stacks[i])
+		reverseSlice(stacks[i])
 		stacks[i] = deleteEmptyBoxes(stacks[i])
 	}
+
+	stacksOldMethod := stacks
+	stacksNewMethod := make([][]string, len(stacks))
+	copy(stacksNewMethod, stacks)
 
 	for _, line := range strings.Split(string(dat), "\r\n") {
 		if !strings.HasPrefix(line, "move") {
@@ -34,20 +38,24 @@ func main() {
 
 		amount, src, dest := parseCommand(line)
 		for i := 0; i < amount; i++ {
-			stacks = moveBox(src, dest, stacks)
+			stacksOldMethod = moveMultipleBoxes(src, dest,1, stacksOldMethod)
 		}
-
+		stacksNewMethod = moveMultipleBoxes(src, dest, amount, stacksNewMethod)
 	}
 
+	printStack(stacksOldMethod)
+	printStack(stacksNewMethod)
+}
+
+func printStack(stack [][]string) {
 	boxes := ""
-	for _, s := range stacks {
+	for _, s := range stack {
 		boxes += s[len(s)-1]
 	}
 
 	boxes = strings.ReplaceAll(boxes, "[", "")
 	boxes = strings.ReplaceAll(boxes, "]", "")
 	fmt.Println(boxes)
-
 }
 
 func deleteEmptyBoxes(stack []string) []string {
@@ -59,17 +67,16 @@ func deleteEmptyBoxes(stack []string) []string {
 	return stack
 }
 
-func ReverseSlice[T comparable](s []T) {
+func reverseSlice[T comparable](s []T) {
 	sort.SliceStable(s, func(i, j int) bool {
 		return i > j
 	})
 }
-
-func moveBox(src int, dest int, stacks [][]string) [][]string {
-	srcBox := stacks[src][len(stacks[src])-1]
-	stacks[src] = stacks[src][0 : len(stacks[src])-1]
-	stacks[dest] = append(stacks[dest], srcBox)
-
+func moveMultipleBoxes(src int, dest int, amount int, stacks [][]string) [][]string {
+	fmt.Printf("Moving %d boxes from %d(%d) to %d(%d)\r\n", amount, src, len(stacks[src]), dest, len(stacks[dest]))
+	srcBox := stacks[src][len(stacks[src])-amount : len(stacks[src])]
+	stacks[src] = stacks[src][0 : len(stacks[src])-amount]
+	stacks[dest] = append(stacks[dest], srcBox...)
 	return stacks
 }
 
